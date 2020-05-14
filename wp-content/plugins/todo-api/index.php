@@ -6,7 +6,7 @@ Author: Jason Gunawan
 Version: 0.1
 */
 add_action('rest_api_init', function () {
-	$namespace = "grab-todo/v1";
+	$namespace = "todo-api/v1";
 	register_rest_route($namespace, 'todos', [
 		'methods'  => 'GET',
 		'callback' => 'get_todos'
