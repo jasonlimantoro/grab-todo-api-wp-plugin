@@ -70,7 +70,7 @@ function create_todo($request)
 			'description' => $request['description']
 		],
 	);
-	return new WP_REST_Response(null, 201);
+	return new WP_REST_Response(['id' => $wpdb->insert_id], 201);
 }
 
 function update_todo($request)
