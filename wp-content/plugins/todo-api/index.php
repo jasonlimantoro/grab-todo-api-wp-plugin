@@ -97,7 +97,7 @@ function create_todo($request)
 			'title' => $request['title'],
 		],
 	);
-	return new WP_REST_Response(['id' => $wpdb->insert_id], 201);
+	return new WP_REST_Response(['id' => strval($wpdb->insert_id)], 201);
 }
 
 function update_todo($request)
