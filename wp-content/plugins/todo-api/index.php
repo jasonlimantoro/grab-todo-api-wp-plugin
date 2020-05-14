@@ -5,6 +5,34 @@ Description: A test plugin to demonstrate wordpress api todo endpoint
 Author: Jason Gunawan
 Version: 0.1
 */
+function init_plugin()
+{
+	global $wpdb;
+	$db_table_name = $wpdb->prefix . 'todos';  // table name
+	$charset_collate = $wpdb->get_charset_collate();
+
+	$query = "CREATE TABLE IF NOT EXISTS $db_table_name (
+			`ID` int(11) NOT NULL AUTO_INCREMENT,
+			`title` varchar(255) NOT NULL,
+			`completed` tinyint(1) NOT NULL DEFAULT '0',
+			PRIMARY KEY (`ID`)
+		   ) $charset_collate";
+
+	require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+	dbDelta($query);
+}
+function destroy_plugin()
+{
+	global $wpdb;
+	$table_name = $wpdb->prefix . 'todos';
+	$sql = "DROP TABLE IF EXISTS $table_name";
+	$wpdb->query($sql);
+}
+
+register_activation_hook(__FILE__, 'init_plugin');
+register_deactivation_hook(__FILE__, 'destroy_plugin');
+register_uninstall_hook(__FILE__, 'destroy_plugin');
+
 add_action('rest_api_init', function () {
 	$namespace = "todo-api/v1";
 	register_rest_route($namespace, 'todos', [
@@ -35,7 +63,7 @@ add_action('rest_api_init', function () {
 function get_todos()
 {
 	global $wpdb;
-	$todos = $wpdb->get_results("SELECT id, title, description, completed FROM {$wpdb->prefix}todos");
+	$todos = $wpdb->get_results("SELECT id, title, completed FROM {$wpdb->prefix}todos");
 	return $todos;
 }
 
@@ -43,7 +71,7 @@ function get_todo($request)
 {
 	global $wpdb;
 	$id = $request['todo_id'];
-	$query = $wpdb->prepare("SELECT id, title, description FROM {$wpdb->prefix}todos WHERE id = %d", $id);
+	$query = $wpdb->prepare("SELECT id, title FROM {$wpdb->prefix}todos WHERE id = %d", $id);
 	$todo = $wpdb->get_results($query);
 	if (empty($todo)) {
 		return new WP_Error('empty_todo', 'there is no todo', ['status' => 404]);
@@ -67,7 +95,6 @@ function create_todo($request)
 		"{$wpdb->prefix}todos",
 		[
 			'title' => $request['title'],
-			'description' => $request['description']
 		],
 	);
 	return new WP_REST_Response(['id' => $wpdb->insert_id], 201);
@@ -77,7 +104,7 @@ function update_todo($request)
 {
 	global $wpdb;
 	$id = $request['todo_id'];
-	$query = $wpdb->prepare("SELECT title, description FROM {$wpdb->prefix}todos WHERE id = %d", $id);
+	$query = $wpdb->prepare("SELECT title FROM {$wpdb->prefix}todos WHERE id = %d", $id);
 	$old_todo = $wpdb->get_results($query)[0];
 	if (empty($old_todo)) {
 		return new WP_Error('empty_todo', 'there is no todo be updated', ['status' => 400]);
@@ -86,7 +113,6 @@ function update_todo($request)
 		"{$wpdb->prefix}todos",
 		[
 			'title' => $request['title'] ?? $old_todo->title,
-			'description' => $request['description'] ?? $old_todo->description,
 			'completed' => $request['completed'] ?? $old_todo->completed,
 		],
 		[
