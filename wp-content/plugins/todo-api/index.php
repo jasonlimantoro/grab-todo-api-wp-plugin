@@ -35,7 +35,7 @@ add_action('rest_api_init', function () {
 function get_todos()
 {
 	global $wpdb;
-	$todos = $wpdb->get_results("SELECT id, title, description FROM {$wpdb->prefix}todos");
+	$todos = $wpdb->get_results("SELECT id, title, description, completed FROM {$wpdb->prefix}todos");
 	return $todos;
 }
 
