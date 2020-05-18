@@ -95,7 +95,7 @@ function create_todo($request)
 		"{$wpdb->prefix}todos",
 		[
 			'title' => $request['title'],
-		],
+		]
 	);
 	return new WP_REST_Response(['id' => strval($wpdb->insert_id)], 201);
 }
